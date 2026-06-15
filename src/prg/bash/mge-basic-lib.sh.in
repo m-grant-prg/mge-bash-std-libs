@@ -1,0 +1,283 @@
+# shellcheck shell=bash
+
+[ -n "${_MGE_BASIC_LIB_LOADED:-}" ] && return
+_MGE_BASIC_LIB_LOADED=1
+
+#########################################################################
+#									#
+#	mge-basic-lib.sh is automatically generated,			#
+#		please do not modify!					#
+#									#
+#########################################################################
+
+#########################################################################
+#									#
+# Author: Copyright (C) 2026  Mark Grant				#
+#									#
+# Released under the GPLv3 only.					#
+# SPDX-License-Identifier: GPL-3.0-only					#
+#									#
+# Purpose:								#
+# This bash library contains the almost always used functions for a	#
+# bash script.								#
+#									#
+# Exit codes used:-							#
+# Bash standard Exit Codes:	0 - success				#
+#				1 - general failure			#
+# User-defined exit code range is 64 - 113				#
+#	C/C++ Semi-standard exit codes from sysexits.h range is 64 - 78	#
+#		EX_USAGE	64	command line usage error	#
+#		EX_DATAERR	65	data format error		#
+#		EX_NOINPUT	66	cannot open input		#
+#		EX_NOUSER	67	addressee unknown		#
+#		EX_NOHOST	68	host name unknown		#
+#		EX_UNAVAILABLE	69	service unavailable		#
+#		EX_SOFTWARE	70	internal software error		#
+#		EX_OSERR	71	system error (e.g., can't fork)	#
+#		EX_OSFILE	72	critical OS file missing	#
+#		EX_CANTCREAT	73	can't create (user) output file	#
+#		EX_IOERR	74	input/output error		#
+#		EX_TEMPFAIL	75	temp failure; user is invited	#
+#					to retry			#
+#		EX_PROTOCOL	76	remote error in protocol	#
+#		EX_NOPERM	77	permission denied		#
+#		EX_CONFIG	78	configuration error		#
+#	User-defined (here) exit codes range 79 - 113:			#
+#				79	Function arguments error	#
+#									#
+# Further Info:								#
+#									#
+#########################################################################
+
+
+set -eo pipefail
+
+
+#########################
+# Script-wide variables #
+#########################
+readonly _mge_basic_lib_version=0.0.1			# script version
+readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
+
+
+#########################
+# Source bash libraries #
+#########################
+. @bashlibloc@/mge-script-exit-lib.sh
+
+
+set +e
+
+
+#############
+# Functions #
+#############
+
+# Test if a bit is set
+# Scope:	Internal
+# Parameters:	$1 The bitmask to process
+#		$2 The populated bitfield (flags)variable
+# Returns:	0 if the bit is set, 1 otherwise
+_mge_basic_lib_is_bit_set()
+{
+	local mask=$1
+	readonly mask
+	local flags=$2
+	readonly flags
+
+	(( (flags & mask) != 0 ))
+}
+
+# Standard function to test command error and call mge_script_exit_lib_exit()
+# if non-zero.
+# Scope:	API
+# Parameters: 	$1 is the exit code, (normally $? from the preceding command).
+# Returns:	0 if no error has occurred, does not return if error detected,
+#		mge_script_exit_lib_exit() exits the script.
+mge_basic_lib_std_cmd_err_handler()
+{
+	if (( $1 )); then
+		mge_script_exit_lib_exit "$1"
+	fi
+	return 0
+}
+
+# Standard function to emit messages depending on various parameters.
+# Scope:	API
+# Parameters:	$1 What:-	The message to emit.
+#		$2 Where:-
+#			Bitmask
+#				0b0 0 0
+#				  │ │ │
+#				  │ │ └─── stdout (1)
+#				  │ └───── stderr (2)
+#				  └─────── log    (4)
+#			Value Mapping
+#			invalid	[0]  000  ->  Invalid value
+#				[1]  001  ->  stdout
+#				[2]  010  ->  stderr
+#			invalid	[3]  011  ->  stdout + stderr
+#				[4]  100  ->  log
+#				[5]  101  ->  stdout + log
+#				[6]  110  ->  stderr + log
+#			invalid	[7]  111  ->  stdout + stderr + log
+#		$3 When:-
+#			Bitmask
+#				0b0 0 0 0
+#				  │ │ │ │
+#				  │ │ │ └─── quiet	(1)
+#				  │ │ └───── standard	(2)
+#				  │ └─────── verbose	(4)
+#				  └───────── trace	(8)
+#			Value Mapping
+#				[0]  0000  ->  silent / no-op
+#				[1]  0001  ->  quiet
+#				[2]  0010  ->  standard
+#			invalid	[3]  0011  ->  quiet & standard
+#				[4]  0100  ->  verbose
+#			invalid	[5]  0101  ->  quiet & verbose
+#			invalid	[6]  0110  ->  standard & verbose
+#			invalid	[7]  0111  ->  quiet & standard & verbose
+#				(8)  1000  ->  trace
+#			invalid	(9)  1001  ->  quiet & trace
+#				(10) 1010  ->  standard & trace
+#			invalid	(11) 1011  ->  quiet & standard & trace
+#				(12) 1100  ->  verbose & trace
+#			invalid	(13) 1101  ->  quiet & verbose & trace
+#			invalid	(14) 1110  ->  standard & verbose & trace
+#			invalid	(15) 1111  ->  quiet & standard & verbose & trace
+#		$4 Log level - Facility.Level
+#			Facility likely values:-
+#				daemon
+#				user
+#			Level likely values
+#				err (3)     — error conditions
+#				warning (4) — warning conditions
+#				notice (5)  — normal but significant condition
+#				info (6)    — informational messages
+#				debug (7)   — debug-level messages
+# Returns:	0 if all is well, 79 if there is an invalid argument or exits
+#		the script via the standard command error handler function
+mge_basic_lib_output()
+{
+	local _msg=$1
+	readonly _msg
+	local _outputprefix
+	_outputprefix="$(basename "$0")"
+	mge_basic_lib_std_cmd_err_handler $?
+	readonly _outputprefix
+	# Set meaningful defaults of stdout and standard. Allows
+	# mge_basic_lib_output() to be called with message as the only
+	# parameter.
+	local where=${2:-1}
+	readonly where
+	local when=${3:-1}
+	readonly when
+	local log_level=${4:-user.info}
+	readonly log_level
+
+	# where bits: 0 = stdout, 1 = stderr, 2 = log
+	local W_STDOUT=$((1 << 0))	# 1
+	readonly W_STDOUT
+	local W_STDERR=$((1 << 1))	# 2
+	readonly W_STDERR
+	local W_LOG=$((1 << 2))		# 4
+	readonly W_LOG
+
+	# when bits: 0 = standard, 1 = verbose, 2 = trace
+	local T_QUIET=$((1 << 0))	# 1
+	readonly T_QUIET
+	local T_STANDARD=$((1 << 1))	# 2
+	readonly T_STANDARD
+	local T_VERBOSE=$((1 << 2))	# 4
+	readonly T_VERBOSE
+	local T_TRACE=$((1 << 3))	# 8
+	readonly T_TRACE
+
+
+	# Validate argument where
+	if (( (where != 1) && (where != 2) && (where != 4) && (where != 5) \
+		&& (where != 6) )); then
+		return 79
+	fi
+
+	# Validate argument when
+	if (( (when != 0) && (when != 1) && (when !=2) && (when != 4) \
+		&& (when != 8) && (when != 10) && (when != 12) )); then
+		return 79
+	fi
+
+	# silent could just drop through, but better to return
+	if (( where == 0 )); then
+		return 0
+	fi
+
+	if _mge_basic_lib_is_bit_set "$W_STDOUT" "$where"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+			printf '%s\n' "$_msg"
+		fi
+	fi
+
+	if _mge_basic_lib_is_bit_set "$W_STDERR" "$where"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+			printf '%s\n' "$_msg" >&2
+		fi
+	fi
+
+	if _mge_basic_lib_is_bit_set "$W_LOG" "$where"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+			logger -t "$_outputprefix" -i -p "$log_level" "$_msg"
+			mge_basic_lib_std_cmd_err_handler $?
+		fi
+	fi
+
+	return 0
+}
+
+# Standard trap exit function.
+# Scope:	API
+# Parameters:	None
+# Returns:	Does not return. Exits via mge_script_exit_lib_exit()
+#
+# Do not warn about unreachable commands in trap functions, nor function is
+# never invoked as these are legitimate features of trap handlers.
+# shellcheck disable=SC2317,SC2329
+mge_basic_lib_trap_exit()
+{
+  local -i sig=${1:-0}
+  local -i exit_code=$((128 + sig))
+  local _msg="Script terminating with exit code $exit_code due to signal $sig."
+  mge_basic_lib_output "$_msg" 2 1
+  mge_script_exit_lib_exit "$exit_code"
+}
+
+# Setup traps.
+trap 'mge_basic_lib_trap_exit 1' HUP
+trap 'mge_basic_lib_trap_exit 2' INT
+trap 'mge_basic_lib_trap_exit 3' QUIT
+trap 'mge_basic_lib_trap_exit 6' ABRT
+trap 'mge_basic_lib_trap_exit 15' TERM
+
+# Print out the script and package version strings to stdout
+# Scope:	API
+# Parameters:	None
+# Returns:	0 on success, exits, from mge_basic_lib_output(), on error
+mge_basic_lib_emit_version()
+{
+	local msg
+
+	msg="mge basic library script version is $_mge_basic_lib_version"
+	mge_basic_lib_output "$msg"
+	msg="mge basic library package version is $_mge_basic_lib_packageversion"
+	mge_basic_lib_output "$msg"
+}
+

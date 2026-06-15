@@ -1,0 +1,16 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+. @bashlibloc@/mge-basic-lib.sh
+
+mge_basic_lib_output "Test-02-04 Answer should be stderr only" 2 4 1> test-02-04-stdout-result.txt 2> test-02-04-stderr-result.txt
+
+cmp test-02-04-stdout-answer.txt test-02-04-stdout-result.txt
+
+cmp test-02-04-stderr-answer.txt test-02-04-stderr-result.txt
+
+cd -
+

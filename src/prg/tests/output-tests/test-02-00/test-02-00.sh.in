@@ -1,0 +1,16 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+. @bashlibloc@/mge-basic-lib.sh
+
+mge_basic_lib_output "Test-02-00 should produce no output" 2 0 1> test-02-00-stdout-result.txt 2> test-02-00-stderr-result.txt
+
+cmp test-02-00-stdout-answer.txt test-02-00-stdout-result.txt
+
+cmp test-02-00-stderr-answer.txt test-02-00-stderr-result.txt
+
+cd -
+

@@ -1,0 +1,10 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+. @bashlibloc@/mge-script-exit-lib.sh
+
+mge_script_exit_lib_exit 79
+

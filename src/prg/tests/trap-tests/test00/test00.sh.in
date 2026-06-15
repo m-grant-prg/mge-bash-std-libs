@@ -1,0 +1,32 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+./test00a.sh 1> test00-stdout-result.txt 2> test00-stderr-result.txt &
+pid=$!
+
+# Ensure thet 00a has a chance to process the source statement before the signal
+# is sent. If the source statemnt fails then the kill will fail with no such
+# process.
+sleep 3
+
+kill -SIGTERM $pid
+
+set +e
+
+wait "$pid"
+# Should fail and return 130
+if (( $? != 143 )); then
+	exit 1
+fi
+
+set -e
+
+cmp test00-stdout-answer.txt test00-stdout-result.txt
+
+cmp test00-stderr-answer.txt test00-stderr-result.txt
+
+cd -
+

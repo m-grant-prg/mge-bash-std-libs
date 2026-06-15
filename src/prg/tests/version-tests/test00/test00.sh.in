@@ -1,0 +1,18 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+. @bashlibloc@/mge-basic-lib.sh
+
+mge_basic_lib_emit_version 1> test00-stdout-result.txt 2> test00-stderr-result.txt
+
+# Substitute the correct script version number
+sed -i "s/X\.X\.X/$_mge_basic_lib_version/g" test00-stdout-answer.txt
+cmp test00-stdout-answer.txt test00-stdout-result.txt
+
+cmp test00-stderr-answer.txt test00-stderr-result.txt
+
+cd -
+

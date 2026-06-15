@@ -1,0 +1,16 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+set +e
+
+./test79a.sh 79
+# Should fail and return 79
+if (( $? != 79 )); then
+	exit 1
+fi
+
+cd -
+

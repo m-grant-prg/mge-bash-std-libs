@@ -1,0 +1,25 @@
+#! @bashlocation@
+
+set -e
+
+cd $(dirname "$0")
+
+. @bashlibloc@/mge-basic-lib.sh
+
+set +e
+
+mge_basic_lib_output "Test-03-00 should produce no output" 3 0 1> test-03-00-stdout-result.txt 2> test-03-00-stderr-result.txt
+
+# Should fail and exit 79 because where is 3
+if (( $? != 79 )); then
+	exit 1
+fi
+
+set -e
+
+cmp test-03-00-stdout-answer.txt test-03-00-stdout-result.txt
+
+cmp test-03-00-stderr-answer.txt test-03-00-stderr-result.txt
+
+cd -
+
