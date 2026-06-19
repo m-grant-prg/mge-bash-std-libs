@@ -433,6 +433,7 @@ AC_CONFIG_FILES([Makefile
 		src/prg/tests/output-tests/test-03-13/Makefile
 		src/prg/tests/output-tests/test-03-14/Makefile
 		src/prg/tests/output-tests/test-03-15/Makefile
+		src/prg/tests/output-tests/test-05-01/Makefile
 		src/prg/tests/trap-tests/test00/Makefile
 		src/prg/tests/version-tests/test00/Makefile
 		src/prg/run-tests/Makefile])

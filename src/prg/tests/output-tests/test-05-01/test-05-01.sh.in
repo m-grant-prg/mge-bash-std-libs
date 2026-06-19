@@ -1,0 +1,60 @@
+#! @bashlocation@
+
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+outputprefix="$(basename "$0")"
+unique_identifier="logger-msg-$(date +%s)-$RANDOM"
+msg="$unique_identifier: Test-05-01 Answer should be logger and stdout only"
+
+check_journal()
+{
+	if command -v journalctl >/dev/null 2>&1; then
+		if journalctl -t "$outputprefix" --since "2 minutes ago" \
+			| grep -Fq "$unique_identifier"; then
+			return 0
+		fi
+	fi
+	return 1
+}
+
+check_syslog()
+{
+	# common syslog locations to try
+	for f in /var/log/syslog /var/log/messages /var/log/system.log; do
+		if [ -r "$f" ]; then
+			if grep -Fq "$unique_identifier" "$f"; then
+				return 0
+			fi
+		fi
+	done
+	return 1
+}
+
+
+. @bashlibloc@/mge-basic-lib.sh
+
+mge_basic_lib_output "$msg" 5 1 "user.info" 1> test-05-01-stdout-result.txt 2> test-05-01-stderr-result.txt
+
+set -euo pipefail
+
+echo "$msg" > test-05-01-stdout-answer.txt
+
+# allow logger/journal/syslog to flush
+sleep 1
+
+cmp test-05-01-stdout-answer.txt test-05-01-stdout-result.txt
+
+cmp test-05-01-stderr-answer.txt test-05-01-stderr-result.txt
+
+if check_journal; then
+	exit 0
+fi
+
+if check_syslog; then
+	exit 0
+fi
+
+exit 1
+

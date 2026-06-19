@@ -77,6 +77,7 @@ TESTS += ../tests/output-tests/test-03-12/test-03-12.sh
 TESTS += ../tests/output-tests/test-03-13/test-03-13.sh
 TESTS += ../tests/output-tests/test-03-14/test-03-14.sh
 TESTS += ../tests/output-tests/test-03-15/test-03-15.sh
+TESTS += ../tests/output-tests/test-05-01/test-05-01.sh
 TESTS += ../tests/trap-tests/test00/test00.sh
 TESTS += ../tests/version-tests/test00/test00.sh
 
