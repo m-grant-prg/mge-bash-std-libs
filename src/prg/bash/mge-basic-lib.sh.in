@@ -171,7 +171,7 @@ mge_basic_lib_output()
 	# parameter.
 	local where=${2:-1}
 	readonly where
-	local when=${3:-1}
+	local when=${3:-2}
 	readonly when
 	local log_level=${4:-user.info}
 	readonly log_level
