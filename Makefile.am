@@ -90,6 +90,7 @@ SUBDIRS += src/prg/tests/output-tests/test-05-04
 SUBDIRS += src/prg/tests/output-tests/test-05-08
 SUBDIRS += src/prg/tests/output-tests/test-06-01
 SUBDIRS += src/prg/tests/output-tests/test-06-02
+SUBDIRS += src/prg/tests/output-tests/test-06-04
 SUBDIRS += src/prg/tests/trap-tests/test00
 SUBDIRS += src/prg/tests/version-tests/test00
 SUBDIRS += src/prg/run-tests

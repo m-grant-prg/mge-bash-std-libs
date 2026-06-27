@@ -83,6 +83,7 @@ TESTS += ../tests/output-tests/test-05-04/test-05-04.sh
 TESTS += ../tests/output-tests/test-05-08/test-05-08.sh
 TESTS += ../tests/output-tests/test-06-01/test-06-01.sh
 TESTS += ../tests/output-tests/test-06-02/test-06-02.sh
+TESTS += ../tests/output-tests/test-06-04/test-06-04.sh
 TESTS += ../tests/trap-tests/test00/test00.sh
 TESTS += ../tests/version-tests/test00/test00.sh
 
