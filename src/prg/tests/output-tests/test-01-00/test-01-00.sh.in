@@ -6,7 +6,9 @@ cd $(dirname "$0")
 
 . @bashlibloc@/mge-basic-lib.sh
 
-mge_basic_lib_output "Test-01-00 should produce no output" 1 0 1> test-01-00-stdout-result.txt 2> test-01-00-stderr-result.txt
+mge_basic_lib_output "Test-01-00 should produce no output" 0 1 0 1> test-01-00-stdout-result.txt 2> test-01-00-stderr-result.txt
+
+set -e
 
 cmp test-01-00-stdout-answer.txt test-01-00-stdout-result.txt
 

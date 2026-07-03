@@ -6,7 +6,29 @@ cd $(dirname "$0")
 
 . @bashlibloc@/mge-basic-lib.sh
 
-mge_basic_lib_output "Test-01-12 Answer should be stdout only" 1 12 1> test-01-12-stdout-result.txt 2> test-01-12-stderr-result.txt
+mge_basic_lib_output "Test-01-12 Answer should be stdout only" 4 1 12 1> test-01-12-stdout-result.txt 2> test-01-12-stderr-result.txt
+
+set -e
+
+cmp test-01-12-stdout-answer.txt test-01-12-stdout-result.txt
+
+cmp test-01-12-stderr-answer.txt test-01-12-stderr-result.txt
+
+set +e
+
+mge_basic_lib_output "Test-01-12 Answer should be stdout only" 8 1 12 1> test-01-12-stdout-result.txt 2> test-01-12-stderr-result.txt
+
+set -e
+
+cmp test-01-12-stdout-answer.txt test-01-12-stdout-result.txt
+
+cmp test-01-12-stderr-answer.txt test-01-12-stderr-result.txt
+
+set +e
+
+mge_basic_lib_output "Test-01-12 Answer should be stdout only" 12 1 12 1> test-01-12-stdout-result.txt 2> test-01-12-stderr-result.txt
+
+set -e
 
 cmp test-01-12-stdout-answer.txt test-01-12-stdout-result.txt
 

@@ -50,7 +50,7 @@ _MGE_BASIC_LIB_LOADED=1
 #########################################################################
 
 
-set -eo pipefail
+set -euo pipefail
 
 
 #########################
@@ -105,23 +105,7 @@ mge_basic_lib_std_cmd_err_handler()
 # Standard function to emit messages depending on various parameters.
 # Scope:	API
 # Parameters:	$1 What:-	The message to emit.
-#		$2 Where:-
-#			Bitmask
-#				0b0 0 0
-#				  │ │ │
-#				  │ │ └─── stdout (1)
-#				  │ └───── stderr (2)
-#				  └─────── log    (4)
-#			Value Mapping
-#			invalid	[0]  000  ->  Invalid value
-#				[1]  001  ->  stdout
-#				[2]  010  ->  stderr
-#			invalid	[3]  011  ->  stdout + stderr
-#				[4]  100  ->  log
-#				[5]  101  ->  stdout + log
-#				[6]  110  ->  stderr + log
-#			invalid	[7]  111  ->  stdout + stderr + log
-#		$3 When:-
+#		$2 Sourcing script verbosity when:-
 #			Bitmask
 #				0b0 0 0 0
 #				  │ │ │ │
@@ -146,7 +130,25 @@ mge_basic_lib_std_cmd_err_handler()
 #			invalid	(13) 1101  ->  quiet & verbose & trace
 #			invalid	(14) 1110  ->  standard & verbose & trace
 #			invalid	(15) 1111  ->  quiet & standard & verbose & trace
-#		$4 Log level - Facility.Level
+#		$3 Where:-
+#			Bitmask
+#				0b0 0 0
+#				  │ │ │
+#				  │ │ └─── stdout (1)
+#				  │ └───── stderr (2)
+#				  └─────── log    (4)
+#			Value Mapping
+#			invalid	[0]  000  ->  Invalid value
+#				[1]  001  ->  stdout
+#				[2]  010  ->  stderr
+#			invalid	[3]  011  ->  stdout + stderr
+#				[4]  100  ->  log
+#				[5]  101  ->  stdout + log
+#				[6]  110  ->  stderr + log
+#			invalid	[7]  111  ->  stdout + stderr + log
+#		$4 function_invocation_when:-
+#			Bitmask and mapping values are the same as $2
+#		$5 Log level - Facility.Level
 #			Facility likely values:-
 #				daemon
 #				user
@@ -162,19 +164,24 @@ mge_basic_lib_output()
 {
 	local _msg=$1
 	readonly _msg
+	local sourcing_script_verbosity_when=$2
+	readonly sourcing_script_verbosity_when
+	# Set meaningful defaults of stdout, standard and user.info. Allows
+	# mge_basic_lib_output() to be called with message and sourcing script
+	# verbosity as the only parameters.
+	local where=${3:-1}
+	readonly where
+	local function_invocation_when=${4:-2}
+	readonly function_invocation_when
+	local effective_resulting_when=$(( function_invocation_when
+		& sourcing_script_verbosity_when ))
+	readonly effective_resulting_when
+	local log_level=${5:-user.info}
+	readonly log_level
 	local _outputprefix
 	_outputprefix="$(basename "$0")"
 	mge_basic_lib_std_cmd_err_handler $?
 	readonly _outputprefix
-	# Set meaningful defaults of stdout and standard. Allows
-	# mge_basic_lib_output() to be called with message as the only
-	# parameter.
-	local where=${2:-1}
-	readonly where
-	local when=${3:-2}
-	readonly when
-	local log_level=${4:-user.info}
-	readonly log_level
 
 	# where bits: 0 = stdout, 1 = stderr, 2 = log
 	local W_STDOUT=$((1 << 0))	# 1
@@ -201,9 +208,25 @@ mge_basic_lib_output()
 		return 79
 	fi
 
-	# Validate argument when
-	if (( (when != 0) && (when != 1) && (when !=2) && (when != 4) \
-		&& (when != 8) && (when != 10) && (when != 12) )); then
+	# Validate argument sourcing_script_verbosity_when
+	if (( (sourcing_script_verbosity_when != 0) \
+		&& (sourcing_script_verbosity_when != 1) \
+		&& (sourcing_script_verbosity_when !=2) \
+		&& (sourcing_script_verbosity_when != 4) \
+		&& (sourcing_script_verbosity_when != 8) \
+		&& (sourcing_script_verbosity_when != 10) \
+		&& (sourcing_script_verbosity_when != 12) )); then
+		return 79
+	fi
+
+	# Validate argument function_invocation_when
+	if (( (function_invocation_when != 0) \
+		&& (function_invocation_when != 1) \
+		&& (function_invocation_when !=2) \
+		&& (function_invocation_when != 4) \
+		&& (function_invocation_when != 8) \
+		&& (function_invocation_when != 10) \
+		&& (function_invocation_when != 12) )); then
 		return 79
 	fi
 
@@ -213,28 +236,40 @@ mge_basic_lib_output()
 	fi
 
 	if _mge_basic_lib_is_bit_set "$W_STDOUT" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg"
 		fi
 	fi
 
 	if _mge_basic_lib_is_bit_set "$W_STDERR" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg" >&2
 		fi
 	fi
 
 	if _mge_basic_lib_is_bit_set "$W_LOG" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" "$when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" "$when"; then
+		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+				"$effective_resulting_when" \
+			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+				"$effective_resulting_when"; then
 			logger -t "$_outputprefix" -i -p "$log_level" "$_msg"
 			mge_basic_lib_std_cmd_err_handler $?
 		fi
@@ -256,7 +291,7 @@ mge_basic_lib_trap_exit()
   local -i sig=${1:-0}
   local -i exit_code=$((128 + sig))
   local _msg="Script terminating with exit code $exit_code due to signal $sig."
-  mge_basic_lib_output "$_msg" 2 1
+  mge_basic_lib_output "$_msg" 1 2 1
   mge_script_exit_lib_exit "$exit_code"
 }
 
@@ -276,8 +311,8 @@ mge_basic_lib_emit_version()
 	local msg
 
 	msg="mge basic library script version is $_mge_basic_lib_version"
-	mge_basic_lib_output "$msg"
+	mge_basic_lib_output "$msg" 14
 	msg="mge basic library package version is $_mge_basic_lib_packageversion"
-	mge_basic_lib_output "$msg"
+	mge_basic_lib_output "$msg" 14
 }
 

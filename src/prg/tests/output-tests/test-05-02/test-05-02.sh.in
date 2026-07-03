@@ -35,7 +35,7 @@ check_syslog()
 
 . @bashlibloc@/mge-basic-lib.sh
 
-mge_basic_lib_output "$msg" 5 2 "user.info" 1> test-05-02-stdout-result.txt 2> test-05-02-stderr-result.txt
+mge_basic_lib_output "$msg" 2 5 2 "user.info" 1> test-05-02-stdout-result.txt 2> test-05-02-stderr-result.txt
 
 set -euo pipefail
 

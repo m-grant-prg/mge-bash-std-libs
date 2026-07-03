@@ -8,7 +8,7 @@ cd $(dirname "$0")
 
 set +e
 
-mge_basic_lib_output "Test-01-06 Should produce no output" 1 6 1> test-01-06-stdout-result.txt 2> test-01-06-stderr-result.txt
+mge_basic_lib_output "Test-01-06 Should produce no output" 6 1 6 1> test-01-06-stdout-result.txt 2> test-01-06-stderr-result.txt
 
 # Should fail and exit 79 because when is 6
 if (( $? != 79 )); then
