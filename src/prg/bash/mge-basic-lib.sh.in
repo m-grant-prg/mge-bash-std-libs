@@ -59,6 +59,9 @@ set -euo pipefail
 readonly _mge_basic_lib_version=0.0.1			# script version
 readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
 
+ # Post-sourced script-wide verbosity, if unset, set to quiet & standard
+: "${VERBOSITY:=3}"
+
 
 #########################
 # Source bash libraries #
@@ -117,19 +120,19 @@ mge_basic_lib_std_cmd_err_handler()
 #				[0]  0000  ->  silent / no-op
 #				[1]  0001  ->  quiet
 #				[2]  0010  ->  standard
-#			invalid	[3]  0011  ->  quiet & standard
+#				[3]  0011  ->  quiet & standard
 #				[4]  0100  ->  verbose
-#			invalid	[5]  0101  ->  quiet & verbose
-#			invalid	[6]  0110  ->  standard & verbose
-#			invalid	[7]  0111  ->  quiet & standard & verbose
+#				[5]  0101  ->  quiet & verbose
+#				[6]  0110  ->  standard & verbose
+#				[7]  0111  ->  quiet & standard & verbose
 #				(8)  1000  ->  trace
-#			invalid	(9)  1001  ->  quiet & trace
+#				(9)  1001  ->  quiet & trace
 #				(10) 1010  ->  standard & trace
-#			invalid	(11) 1011  ->  quiet & standard & trace
+#				(11) 1011  ->  quiet & standard & trace
 #				(12) 1100  ->  verbose & trace
-#			invalid	(13) 1101  ->  quiet & verbose & trace
-#			invalid	(14) 1110  ->  standard & verbose & trace
-#			invalid	(15) 1111  ->  quiet & standard & verbose & trace
+#				(13) 1101  ->  quiet & verbose & trace
+#				(14) 1110  ->  standard & verbose & trace
+#				(15) 1111  ->  quiet & standard & verbose & trace
 #		$3 Where:-
 #			Bitmask
 #				0b0 0 0
@@ -138,7 +141,7 @@ mge_basic_lib_std_cmd_err_handler()
 #				  │ └───── stderr (2)
 #				  └─────── log    (4)
 #			Value Mapping
-#			invalid	[0]  000  ->  Invalid value
+#				[0]  000  ->  silent / no-op
 #				[1]  001  ->  stdout
 #				[2]  010  ->  stderr
 #			invalid	[3]  011  ->  stdout + stderr
@@ -147,7 +150,30 @@ mge_basic_lib_std_cmd_err_handler()
 #				[6]  110  ->  stderr + log
 #			invalid	[7]  111  ->  stdout + stderr + log
 #		$4 function_invocation_when:-
-#			Bitmask and mapping values are the same as $2
+#			Bitmask
+#				0b0 0 0 0
+#				  │ │ │ │
+#				  │ │ │ └─── quiet	(1)
+#				  │ │ └───── standard	(2)
+#				  │ └─────── verbose	(4)
+#				  └───────── trace	(8)
+#			Value Mapping
+#				[0]  0000  ->  silent / no-op
+#				[1]  0001  ->  quiet
+#				[2]  0010  ->  standard
+#			invalid	[3]  0011  ->  quiet & standard
+#				[4]  0100  ->  verbose
+#			invalid	[5]  0101  ->  quiet & verbose
+#			invalid	[6]  0110  ->  standard & verbose
+#			invalid	[7]  0111  ->  quiet & standard & verbose
+#				(8)  1000  ->  trace
+#			invalid	(9)  1001  ->  quiet & trace
+#			invalid	(10) 1010  ->  standard & trace
+#			invalid	(11) 1011  ->  quiet & standard & trace
+#			invalid	(12) 1100  ->  verbose & trace
+#			invalid	(13) 1101  ->  quiet & verbose & trace
+#			invalid	(14) 1110  ->  standard & verbose & trace
+#			invalid	(15) 1111  ->  quiet & standard & verbose & trace
 #		$5 Log level - Facility.Level
 #			Facility likely values:-
 #				daemon
@@ -202,37 +228,39 @@ mge_basic_lib_output()
 	readonly T_TRACE
 
 
+	# silent could just drop through, but better to return
+	if (( where == 0 )); then
+		return 0
+	fi
+
 	# Validate argument where
 	if (( (where != 1) && (where != 2) && (where != 4) && (where != 5) \
 		&& (where != 6) )); then
 		return 79
 	fi
 
-	# Validate argument sourcing_script_verbosity_when
-	if (( (sourcing_script_verbosity_when != 0) \
-		&& (sourcing_script_verbosity_when != 1) \
-		&& (sourcing_script_verbosity_when !=2) \
-		&& (sourcing_script_verbosity_when != 4) \
-		&& (sourcing_script_verbosity_when != 8) \
-		&& (sourcing_script_verbosity_when != 10) \
-		&& (sourcing_script_verbosity_when != 12) )); then
-		return 79
+	# silent could just drop through, but better to return
+	if (( sourcing_script_verbosity_when == 0 )); then
+		return 0
 	fi
 
-	# Validate argument function_invocation_when
-	if (( (function_invocation_when != 0) \
-		&& (function_invocation_when != 1) \
-		&& (function_invocation_when !=2) \
-		&& (function_invocation_when != 4) \
-		&& (function_invocation_when != 8) \
-		&& (function_invocation_when != 10) \
-		&& (function_invocation_when != 12) )); then
+	# Validate argument sourcing_script_verbosity_when
+	if (( (sourcing_script_verbosity_when < 1) \
+		|| (sourcing_script_verbosity_when > 15) )); then
 		return 79
 	fi
 
 	# silent could just drop through, but better to return
-	if (( where == 0 )); then
+	if (( function_invocation_when == 0 )); then
 		return 0
+	fi
+
+	# Validate argument function_invocation_when
+	if (( (function_invocation_when != 1) \
+		&& (function_invocation_when != 2) \
+		&& (function_invocation_when != 4) \
+		&& (function_invocation_when != 8) )); then
+		return 79
 	fi
 
 	if _mge_basic_lib_is_bit_set "$W_STDOUT" "$where"; then
@@ -291,7 +319,7 @@ mge_basic_lib_trap_exit()
   local -i sig=${1:-0}
   local -i exit_code=$((128 + sig))
   local _msg="Script terminating with exit code $exit_code due to signal $sig."
-  mge_basic_lib_output "$_msg" 1 2 1
+  mge_basic_lib_output "$_msg" "$VERBOSITY" 2 1
   mge_script_exit_lib_exit "$exit_code"
 }
 
@@ -311,8 +339,8 @@ mge_basic_lib_emit_version()
 	local msg
 
 	msg="mge basic library script version is $_mge_basic_lib_version"
-	mge_basic_lib_output "$msg" 14
+	mge_basic_lib_output "$msg" "$VERBOSITY"
 	msg="mge basic library package version is $_mge_basic_lib_packageversion"
-	mge_basic_lib_output "$msg" 14
+	mge_basic_lib_output "$msg" "$VERBOSITY"
 }
 
