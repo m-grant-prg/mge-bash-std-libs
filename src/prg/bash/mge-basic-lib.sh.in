@@ -60,9 +60,9 @@ readonly _mge_basic_lib_version=0.0.1			# script version
 readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
 
 # where bits: 0 = stdout, 1 = stderr, 2 = log
-readonly mge_basic_lib_stdout=$((1 << 0))	# 1
-readonly mge_basic_lib_stderr=$((1 << 1))	# 2
-readonly mge_basic_lib_log=$((1 << 2))		# 4
+readonly mge_basic_lib_where_stdout=$((1 << 0))	# 1
+readonly mge_basic_lib_where_stderr=$((1 << 1))	# 2
+readonly mge_basic_lib_where_log=$((1 << 2))		# 4
 
 # when bits: 0 = standard, 1 = verbose, 2 = trace
 readonly mge_basic_lib_when_quiet=$((1 << 0))		# 1
@@ -256,7 +256,8 @@ mge_basic_lib_output()
 		return 79
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_stdout" "$where"; then
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_stdout" \
+			"$where"; then
 		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
@@ -272,7 +273,8 @@ mge_basic_lib_output()
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_stderr" "$where"; then
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_stderr" \
+			"$where"; then
 		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
@@ -288,7 +290,7 @@ mge_basic_lib_output()
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_log" "$where"; then
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_log" "$where"; then
 		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
