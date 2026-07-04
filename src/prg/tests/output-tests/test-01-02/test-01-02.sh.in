@@ -6,7 +6,9 @@ cd "$(dirname "$0")"
 
 . @bashlibloc@/mge-basic-lib.sh
 
-mge_basic_lib_output "Test-01-02 Answer should be stdout only" 2 1> test-01-02-stdout-result.txt 2> test-01-02-stderr-result.txt
+VERBOSITY=$(( mge_basic_lib_when_standard | mge_basic_lib_when_quiet ))
+
+mge_basic_lib_output "Test-01-02 Answer should be stdout only" "$VERBOSITY" 1> test-01-02-stdout-result.txt 2> test-01-02-stderr-result.txt
 
 set -e
 

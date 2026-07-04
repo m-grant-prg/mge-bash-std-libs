@@ -59,6 +59,17 @@ set -euo pipefail
 readonly _mge_basic_lib_version=0.0.1			# script version
 readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
 
+# where bits: 0 = stdout, 1 = stderr, 2 = log
+readonly mge_basic_lib_stdout=$((1 << 0))	# 1
+readonly mge_basic_lib_stderr=$((1 << 1))	# 2
+readonly mge_basic_lib_log=$((1 << 2))		# 4
+
+# when bits: 0 = standard, 1 = verbose, 2 = trace
+readonly mge_basic_lib_when_quiet=$((1 << 0))		# 1
+readonly mge_basic_lib_when_standard=$((1 << 1))	# 2
+readonly mge_basic_lib_when_verbose=$((1 << 2))		# 4
+readonly mge_basic_lib_when_trace=$((1 << 3))		# 8
+
  # Post-sourced script-wide verbosity, if unset, set to quiet & standard
 : "${VERBOSITY:=3}"
 
@@ -209,24 +220,6 @@ mge_basic_lib_output()
 	mge_basic_lib_std_cmd_err_handler $?
 	readonly _outputprefix
 
-	# where bits: 0 = stdout, 1 = stderr, 2 = log
-	local W_STDOUT=$((1 << 0))	# 1
-	readonly W_STDOUT
-	local W_STDERR=$((1 << 1))	# 2
-	readonly W_STDERR
-	local W_LOG=$((1 << 2))		# 4
-	readonly W_LOG
-
-	# when bits: 0 = standard, 1 = verbose, 2 = trace
-	local T_QUIET=$((1 << 0))	# 1
-	readonly T_QUIET
-	local T_STANDARD=$((1 << 1))	# 2
-	readonly T_STANDARD
-	local T_VERBOSE=$((1 << 2))	# 4
-	readonly T_VERBOSE
-	local T_TRACE=$((1 << 3))	# 8
-	readonly T_TRACE
-
 
 	# silent could just drop through, but better to return
 	if (( where == 0 )); then
@@ -263,40 +256,49 @@ mge_basic_lib_output()
 		return 79
 	fi
 
-	if _mge_basic_lib_is_bit_set "$W_STDOUT" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_stdout" "$where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_standard" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_verbose" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_trace" \
 				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg"
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$W_STDERR" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_stderr" "$where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_standard" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_verbose" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_trace" \
 				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg" >&2
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$W_LOG" "$where"; then
-		if _mge_basic_lib_is_bit_set "$T_QUIET" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_log" "$where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_STANDARD" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_standard" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_VERBOSE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_verbose" \
 				"$effective_resulting_when" \
-			|| _mge_basic_lib_is_bit_set "$T_TRACE" \
+			|| _mge_basic_lib_is_bit_set \
+				"$mge_basic_lib_when_trace" \
 				"$effective_resulting_when"; then
 			logger -t "$_outputprefix" -i -p "$log_level" "$_msg"
 			mge_basic_lib_std_cmd_err_handler $?
