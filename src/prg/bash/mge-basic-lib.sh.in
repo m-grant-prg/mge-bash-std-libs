@@ -60,18 +60,22 @@ readonly _mge_basic_lib_version=0.0.1			# script version
 readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
 
 # where bits: 0 = stdout, 1 = stderr, 2 = log
-readonly mge_basic_lib_where_stdout=$((1 << 0))	# 1
-readonly mge_basic_lib_where_stderr=$((1 << 1))	# 2
-readonly mge_basic_lib_where_log=$((1 << 2))		# 4
+readonly mge_basic_lib_output_where_silent=0		# 1
+readonly mge_basic_lib_output_where_stdout=$((1 << 0))	# 1
+readonly mge_basic_lib_output_where_stderr=$((1 << 1))	# 2
+readonly mge_basic_lib_output_where_log=$((1 << 2))	# 4
 
 # when bits: 0 = standard, 1 = verbose, 2 = trace
-readonly mge_basic_lib_when_quiet=$((1 << 0))		# 1
-readonly mge_basic_lib_when_standard=$((1 << 1))	# 2
-readonly mge_basic_lib_when_verbose=$((1 << 2))		# 4
-readonly mge_basic_lib_when_trace=$((1 << 3))		# 8
+readonly mge_basic_lib_output_when_silent=0		# 0
+readonly mge_basic_lib_output_when_quiet=$((1 << 0))	# 1
+readonly mge_basic_lib_output_when_standard=$((1 << 1))	# 2
+readonly mge_basic_lib_output_when_verbose=$((1 << 2))	# 4
+readonly mge_basic_lib_output_when_trace=$((1 << 3))	# 8
 
- # Post-sourced script-wide verbosity, if unset, set to quiet & standard
-: "${VERBOSITY:=3}"
+ # Library internal script-wide verbosity, set to all
+ _mge_basic_lib_verbosity=$(( mge_basic_lib_output_when_quiet \
+	 | mge_basic_lib_output_when_standard | mge_basic_lib_output_when_verbose \
+	 | mge_basic_lib_output_when_trace ))
 
 
 #########################
@@ -201,14 +205,16 @@ mge_basic_lib_output()
 {
 	local _msg=$1
 	readonly _msg
-	local sourcing_script_verbosity_when=$2
+	# Set meaningful defaults of quiet & standard, stdout, standard and
+	# user.info. Allows mge_basic_lib_output() to be called with message as
+	# the only parameter.
+	local sourcing_script_verbosity_when=${2:- \
+		$(( mge_basic_lib_output_when_quiet \
+		| mge_basic_lib_output_when_standard ))}
 	readonly sourcing_script_verbosity_when
-	# Set meaningful defaults of stdout, standard and user.info. Allows
-	# mge_basic_lib_output() to be called with message and sourcing script
-	# verbosity as the only parameters.
-	local where=${3:-1}
-	readonly where
-	local function_invocation_when=${4:-2}
+	local _where=${3:-$mge_basic_lib_output_where_stdout}
+	readonly _where
+	local function_invocation_when=${4:-$mge_basic_lib_output_when_standard}
 	readonly function_invocation_when
 	local effective_resulting_when=$(( function_invocation_when
 		& sourcing_script_verbosity_when ))
@@ -220,23 +226,21 @@ mge_basic_lib_output()
 	mge_basic_lib_std_cmd_err_handler $?
 	readonly _outputprefix
 
-
 	# silent could just drop through, but better to return
-	if (( where == 0 )); then
+	if (( _where == mge_basic_lib_output_where_silent )); then
 		return 0
 	fi
-
 	# Validate argument where
-	if (( (where != 1) && (where != 2) && (where != 4) && (where != 5) \
-		&& (where != 6) )); then
+	if (( (_where != 1) && (_where != 2) && (_where != 4) && (_where != 5) \
+		&& (_where != 6) )); then
 		return 79
 	fi
 
 	# silent could just drop through, but better to return
-	if (( sourcing_script_verbosity_when == 0 )); then
+	if (( sourcing_script_verbosity_when \
+		== mge_basic_lib_output_when_silent )); then
 		return 0
 	fi
-
 	# Validate argument sourcing_script_verbosity_when
 	if (( (sourcing_script_verbosity_when < 1) \
 		|| (sourcing_script_verbosity_when > 15) )); then
@@ -244,10 +248,10 @@ mge_basic_lib_output()
 	fi
 
 	# silent could just drop through, but better to return
-	if (( function_invocation_when == 0 )); then
+	if (( function_invocation_when == mge_basic_lib_output_when_silent ))
+	then
 		return 0
 	fi
-
 	# Validate argument function_invocation_when
 	if (( (function_invocation_when != 1) \
 		&& (function_invocation_when != 2) \
@@ -256,51 +260,52 @@ mge_basic_lib_output()
 		return 79
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_stdout" \
-			"$where"; then
-		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_where_stdout" \
+			"$_where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_standard" \
+				"$mge_basic_lib_output_when_standard" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_verbose" \
+				"$mge_basic_lib_output_when_verbose" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_trace" \
+				"$mge_basic_lib_output_when_trace" \
 				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg"
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_stderr" \
-			"$where"; then
-		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_where_stderr" \
+			"$_where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_standard" \
+				"$mge_basic_lib_output_when_standard" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_verbose" \
+				"$mge_basic_lib_output_when_verbose" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_trace" \
+				"$mge_basic_lib_output_when_trace" \
 				"$effective_resulting_when"; then
 			printf '%s\n' "$_msg" >&2
 		fi
 	fi
 
-	if _mge_basic_lib_is_bit_set "$mge_basic_lib_where_log" "$where"; then
-		if _mge_basic_lib_is_bit_set "$mge_basic_lib_when_quiet" \
+	if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_where_log" \
+		"$_where"; then
+		if _mge_basic_lib_is_bit_set "$mge_basic_lib_output_when_quiet" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_standard" \
+				"$mge_basic_lib_output_when_standard" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_verbose" \
+				"$mge_basic_lib_output_when_verbose" \
 				"$effective_resulting_when" \
 			|| _mge_basic_lib_is_bit_set \
-				"$mge_basic_lib_when_trace" \
+				"$mge_basic_lib_output_when_trace" \
 				"$effective_resulting_when"; then
 			logger -t "$_outputprefix" -i -p "$log_level" "$_msg"
 			mge_basic_lib_std_cmd_err_handler $?
@@ -323,7 +328,8 @@ mge_basic_lib_trap_exit()
   local -i sig=${1:-0}
   local -i exit_code=$((128 + sig))
   local _msg="Script terminating with exit code $exit_code due to signal $sig."
-  mge_basic_lib_output "$_msg" "$VERBOSITY" 2 1
+  mge_basic_lib_output "$_msg" "$_mge_basic_lib_verbosity" \
+	  "mge_basic_lib_output_where_stderr"
   mge_script_exit_lib_exit "$exit_code"
 }
 
@@ -343,8 +349,8 @@ mge_basic_lib_emit_version()
 	local msg
 
 	msg="mge basic library script version is $_mge_basic_lib_version"
-	mge_basic_lib_output "$msg" "$VERBOSITY"
+	mge_basic_lib_output "$msg" "$_mge_basic_lib_verbosity"
 	msg="mge basic library package version is $_mge_basic_lib_packageversion"
-	mge_basic_lib_output "$msg" "$VERBOSITY"
+	mge_basic_lib_output "$msg" "$_mge_basic_lib_verbosity"
 }
 
