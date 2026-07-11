@@ -21,24 +21,31 @@ test-03-00.sh: Makefile
 test-03-00.sh: $(srcdir)/test-03-00.sh.in
 
 
-test-03-00-stderr-answer.txt test-03-00-stdout-answer.txt: Makefile
+test-03-00-stderr-answer.txt test-03-00-a-stderr-answer.txt \
+	test-03-00-stdout-answer.txt test-03-00-a-stdout-answer.txt: Makefile
 	mkdir -p $(@D)
 	rm -f $@ $@.tmp
 	test -f ./$@.in || srcdir=$(srcdir)/; \
 	cp $${srcdir}$(@F).in  $@
 test-03-00-stderr-answer.txt: $(srcdir)/test-03-00-stderr-answer.txt.in
+test-03-00-a-stderr-answer.txt: $(srcdir)/test-03-00-a-stderr-answer.txt.in
 test-03-00-stdout-answer.txt: $(srcdir)/test-03-00-stdout-answer.txt.in
+test-03-00-a-stdout-answer.txt: $(srcdir)/test-03-00-a-stdout-answer.txt.in
 
 
 check_DATA = test-03-00.sh test-03-00-stderr-answer.txt \
-	     test-03-00-stdout-answer.txt
+	     test-03-00-a-stderr-answer.txt test-03-00-stdout-answer.txt \
+	     test-03-00-a-stdout-answer.txt
 
 
-EXTRA_DIST = $(srcdir)/test-03-00.sh.in \
-	     test-03-00-stderr-answer.txt.in test-03-00-stdout-answer.txt.in
+EXTRA_DIST = $(srcdir)/test-03-00.sh.in test-03-00-stderr-answer.txt.in \
+	     $(srcdir)/test-03-00-a-stderr-answer.txt.in \
+	     test-03-00-stdout-answer.txt.in \
+	     $(srcdir)/test-03-00-a-stdout-answer.txt.in
 
 
 CLEANFILES = *.tmp test-03-00.sh test-03-00-stderr-answer.txt \
-	     test-03-00-stdout-answer.txt test-03-00-stderr-result.txt \
-	     test-03-00-stdout-result.txt
+	     test-03-00-a-stderr-answer.txt test-03-00-stdout-answer.txt \
+	     test-03-00-stderr-result.txt test-03-00-stdout-result.txt \
+	     test-03-00-a-stdout-answer.txt
 

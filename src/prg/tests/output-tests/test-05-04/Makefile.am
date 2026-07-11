@@ -21,21 +21,28 @@ test-05-04.sh: Makefile
 test-05-04.sh: $(srcdir)/test-05-04.sh.in
 
 
-test-05-04-stderr-answer.txt: Makefile
+test-05-04-stderr-answer.txt test-05-04-a-stderr-answer.txt \
+	test-05-04-a-stdout-answer.txt: Makefile
 	mkdir -p $(@D)
 	rm -f $@ $@.tmp
 	test -f ./$@.in || srcdir=$(srcdir)/; \
 	cp $${srcdir}$(@F).in  $@
 test-05-04-stderr-answer.txt: $(srcdir)/test-05-04-stderr-answer.txt.in
+test-05-04-a-stderr-answer.txt: $(srcdir)/test-05-04-a-stderr-answer.txt.in
+test-05-04-a-stdout-answer.txt: $(srcdir)/test-05-04-a-stdout-answer.txt.in
 
 
-check_DATA = test-05-04.sh test-05-04-stderr-answer.txt
+check_DATA = test-05-04.sh test-05-04-stderr-answer.txt \
+	     test-05-04-a-stderr-answer.txt test-05-04-a-stdout-answer.txt
 
 
-EXTRA_DIST = $(srcdir)/test-05-04.sh.in test-05-04-stderr-answer.txt.in
+EXTRA_DIST = $(srcdir)/test-05-04.sh.in test-05-04-stderr-answer.txt.in \
+	     $(srcdir)/test-05-04-a-stderr-answer.txt.in \
+	     $(srcdir)/test-05-04-a-stdout-answer.txt.in
 
 
 CLEANFILES = *.tmp test-05-04.sh test-05-04-stderr-answer.txt \
-	     test-05-04-stdout-answer.txt test-05-04-stderr-result.txt \
-	     test-05-04-stdout-result.txt
+	     test-05-04-a-stderr-answer.txt test-05-04-stderr-result.txt \
+	     test-05-04-stdout-result.txt test-05-04-stdout-answer.txt \
+	     test-05-04-a-stdout-answer.txt
 

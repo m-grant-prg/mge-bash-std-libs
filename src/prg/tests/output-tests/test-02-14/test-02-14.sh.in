@@ -6,20 +6,42 @@ cd $(dirname "$0")
 
 . @bashlibloc@/mge-basic-lib.sh
 
-set +e
+where=$mge_basic_lib_output_where_stderr
+when=$(( $mge_basic_lib_output_when_standard \
+	| $mge_basic_lib_output_when_verbose \
+	| $mge_basic_lib_output_when_trace ))
 
-mge_basic_lib_output "Test-02-14 Should produce no output" 14 2 14 1> test-02-14-stdout-result.txt 2> test-02-14-stderr-result.txt
+test_name_digits=$(printf "%02d-%02d" $where $when)
 
-# Should fail and exit 79 because when is 14
-if (( $? != 79 )); then
-	exit 1
-fi
+for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
+	set +e
+	mge_basic_lib_output "Test-$test_name_digits Should produce no output" \
+		"$verbosity" "$where" \
+		"$when" 1> test-$test_name_digits-stdout-result.txt \
+		2> test-$test_name_digits-stderr-result.txt
+	err=$?
 
-set -e
+	# Should fail and exit 79 because when is 3, unless verbosity is silent
+	if (( verbosity != 0 )); then
+		if (( err != 79 )); then
+			exit 1
+		fi
+	fi
 
-cmp test-02-14-stdout-answer.txt test-02-14-stdout-result.txt
+	set -e
 
-cmp test-02-14-stderr-answer.txt test-02-14-stderr-result.txt
+	if _mge_basic_lib_is_bit_set "$when" "$verbosity"; then
+		cmp test-$test_name_digits-stdout-answer.txt \
+			test-$test_name_digits-stdout-result.txt
+		cmp test-$test_name_digits-stderr-answer.txt \
+			test-$test_name_digits-stderr-result.txt
+	else
+		cmp test-$test_name_digits-a-stdout-answer.txt \
+			test-$test_name_digits-stdout-result.txt
+		cmp test-$test_name_digits-a-stderr-answer.txt \
+			test-$test_name_digits-stderr-result.txt
+	fi
+done
 
 cd -
 

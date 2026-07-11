@@ -60,12 +60,12 @@ readonly _mge_basic_lib_version=0.0.1			# script version
 readonly _mge_basic_lib_packageversion=@pkgversion@	# package version
 
 # where bits: 0 = stdout, 1 = stderr, 2 = log
-readonly mge_basic_lib_output_where_silent=0		# 1
+readonly mge_basic_lib_output_where_silent=0		# 0
 readonly mge_basic_lib_output_where_stdout=$((1 << 0))	# 1
 readonly mge_basic_lib_output_where_stderr=$((1 << 1))	# 2
 readonly mge_basic_lib_output_where_log=$((1 << 2))	# 4
 
-# when bits: 0 = standard, 1 = verbose, 2 = trace
+# when bits: 0 = quiet, 1 = standard, 2 = verbose, 3 = trace
 readonly mge_basic_lib_output_when_silent=0		# 0
 readonly mge_basic_lib_output_when_quiet=$((1 << 0))	# 1
 readonly mge_basic_lib_output_when_standard=$((1 << 1))	# 2

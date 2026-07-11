@@ -4,9 +4,15 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+. @bashlibloc@/mge-basic-lib.sh
+
+where=$(( mge_basic_lib_output_where_stderr \
+	| mge_basic_lib_output_where_log ))
+when=$mge_basic_lib_output_when_standard
+
+test_name_digits=$(printf "%02d-%02d" "$where" "$when")
+
 outputprefix="$(basename "$0")"
-unique_identifier="logger-msg-$(date +%s)-$RANDOM"
-msg="$unique_identifier: Test-06-02 Answer should be logger and stderr only"
 
 check_journal()
 {
@@ -32,29 +38,48 @@ check_syslog()
 	return 1
 }
 
+for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
+	set +e
 
-. @bashlibloc@/mge-basic-lib.sh
+	unique_identifier="logger-msg-$(date +%s)-$RANDOM"
+	msg="$unique_identifier: Test-$test_name_digits Answer should be logger and stdout only"
 
-mge_basic_lib_output "$msg" 2 6 2 "user.info" 1> test-06-02-stdout-result.txt 2> test-06-02-stderr-result.txt
+	mge_basic_lib_output "$msg" "$verbosity" "$where" "$when" \
+		1> test-"$test_name_digits"-stdout-result.txt \
+		2> test-"$test_name_digits"-stderr-result.txt
 
-set -euo pipefail
+	set -e
 
-echo "$msg" > test-06-02-stderr-answer.txt
+	echo "$msg" > test-"$test_name_digits"-stderr-answer.txt
 
-# allow logger/journal/syslog to flush
-sleep 1
+	# allow logger/journal/syslog to flush
+	sleep 1
 
-cmp test-06-02-stdout-answer.txt test-06-02-stdout-result.txt
+	if _mge_basic_lib_is_bit_set "$when" "$verbosity"; then
+		cmp test-"$test_name_digits"-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
+		if check_journal; then
+			continue
+		fi
 
-cmp test-06-02-stderr-answer.txt test-06-02-stderr-result.txt
+		if check_syslog; then
+			continue
+		fi
+	else
+		cmp test-"$test_name_digits"-a-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-a-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
+		if ! check_journal && ! check_syslog; then
+			continue
+		fi
+	fi
 
-if check_journal; then
-	exit 0
-fi
+	exit 1
 
-if check_syslog; then
-	exit 0
-fi
+done
 
-exit 1
+cd -
 

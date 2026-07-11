@@ -21,24 +21,31 @@ test-02-06.sh: Makefile
 test-02-06.sh: $(srcdir)/test-02-06.sh.in
 
 
-test-02-06-stderr-answer.txt test-02-06-stdout-answer.txt: Makefile
+test-02-06-stderr-answer.txt test-02-06-a-stderr-answer.txt \
+	test-02-06-stdout-answer.txt test-02-06-a-stdout-answer.txt: Makefile
 	mkdir -p $(@D)
 	rm -f $@ $@.tmp
 	test -f ./$@.in || srcdir=$(srcdir)/; \
 	cp $${srcdir}$(@F).in  $@
 test-02-06-stderr-answer.txt: $(srcdir)/test-02-06-stderr-answer.txt.in
+test-02-06-a-stderr-answer.txt: $(srcdir)/test-02-06-a-stderr-answer.txt.in
 test-02-06-stdout-answer.txt: $(srcdir)/test-02-06-stdout-answer.txt.in
+test-02-06-a-stdout-answer.txt: $(srcdir)/test-02-06-a-stdout-answer.txt.in
 
 
 check_DATA = test-02-06.sh test-02-06-stderr-answer.txt \
-	     test-02-06-stdout-answer.txt
+	     test-02-06-a-stderr-answer.txt test-02-06-stdout-answer.txt \
+	     test-02-06-a-stdout-answer.txt
 
 
-EXTRA_DIST = $(srcdir)/test-02-06.sh.in \
-	     test-02-06-stderr-answer.txt.in test-02-06-stdout-answer.txt.in
+EXTRA_DIST = $(srcdir)/test-02-06.sh.in test-02-06-stderr-answer.txt.in \
+	     $(srcdir)/test-02-06-a-stderr-answer.txt.in \
+	     test-02-06-stdout-answer.txt.in \
+	     $(srcdir)/test-02-06-a-stdout-answer.txt.in
 
 
 CLEANFILES = *.tmp test-02-06.sh test-02-06-stderr-answer.txt \
-	     test-02-06-stdout-answer.txt test-02-06-stderr-result.txt \
-	     test-02-06-stdout-result.txt
+	     test-02-06-a-stderr-answer.txt test-02-06-stdout-answer.txt \
+	     test-02-06-stderr-result.txt test-02-06-stdout-result.txt \
+	     test-02-06-a-stdout-answer.txt
 
