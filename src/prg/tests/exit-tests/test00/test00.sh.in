@@ -2,11 +2,9 @@
 
 set -e
 
-cd $(dirname "$0")
+cd "$(dirname "$0")"
 
 . @bashlibloc@/mge-basic-lib.sh
 
 mge_script_exit_lib_exit 0
-
-cd -
 

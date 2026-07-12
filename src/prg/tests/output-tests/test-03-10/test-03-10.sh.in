@@ -2,23 +2,23 @@
 
 set -e
 
-cd $(dirname "$0")
+cd "$(dirname "$0")"
 
 . @bashlibloc@/mge-basic-lib.sh
 
-where=$(( $mge_basic_lib_output_where_stdout \
-	| $mge_basic_lib_output_where_stderr ))
-when=$(( $mge_basic_lib_output_when_standard \
-	| $mge_basic_lib_output_when_trace ))
+where=$(( mge_basic_lib_output_where_stdout \
+	| mge_basic_lib_output_where_stderr ))
+when=$(( mge_basic_lib_output_when_standard \
+	| mge_basic_lib_output_when_trace ))
 
-test_name_digits=$(printf "%02d-%02d" $where $when)
+test_name_digits=$(printf "%02d-%02d" "$where" "$when")
 
 for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
 	set +e
 	mge_basic_lib_output "Test-$test_name_digits Should produce no output" \
 		"$verbosity" "$where" \
-		"$when" 1> test-$test_name_digits-stdout-result.txt \
-		2> test-$test_name_digits-stderr-result.txt
+		"$when" 1> test-"$test_name_digits"-stdout-result.txt \
+		2> test-"$test_name_digits"-stderr-result.txt
 	err=$?
 
 	# Should fall through as where is always 3
@@ -31,15 +31,15 @@ for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
 	set -e
 
 	if _mge_basic_lib_is_bit_set "$when" "$verbosity"; then
-		cmp test-$test_name_digits-stdout-answer.txt \
-			test-$test_name_digits-stdout-result.txt
-		cmp test-$test_name_digits-stderr-answer.txt \
-			test-$test_name_digits-stderr-result.txt
+		cmp test-"$test_name_digits"-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
 	else
-		cmp test-$test_name_digits-a-stdout-answer.txt \
-			test-$test_name_digits-stdout-result.txt
-		cmp test-$test_name_digits-a-stderr-answer.txt \
-			test-$test_name_digits-stderr-result.txt
+		cmp test-"$test_name_digits"-a-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-a-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
 	fi
 done
 

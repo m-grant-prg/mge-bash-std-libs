@@ -2,7 +2,7 @@
 
 set -e
 
-cd $(dirname "$0")
+cd "$(dirname "$0")"
 
 ./test00a.sh 1> test00-stdout-result.txt 2> test00-stderr-result.txt &
 pid=$!
@@ -10,14 +10,14 @@ pid=$!
 # Ensure that 00a has a chance to process the source statement before the signal
 # is sent. If the source statement fails then the kill will fail with no such
 # process.
-sleep 3
+sleep 1
 
-kill -SIGTERM $pid
+kill -SIGTERM "$pid"
 
 set +e
 
 wait "$pid"
-# Should fail and return 130
+# Should fail and return 143
 if (( $? != 143 )); then
 	exit 1
 fi
