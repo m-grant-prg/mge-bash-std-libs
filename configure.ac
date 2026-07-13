@@ -317,6 +317,8 @@ AC_MSG_NOTICE(processing additional checks and variables)
 #					${libexecdir}/${PACKAGE}
 #
 AC_SUBST([edit], ["$SED \
+		-e 's|@topsrcdir[@]|\$(top_srcdir)|g' \
+		-e 's|@topbuilddir[@]|\$(top_builddir)|g' \
 		-e 's|@bashlibloc[@]|\$(bashlibloc)|g' \
 		-e 's|@bashlocation[@]|\$(BASH)|g' \
 		-e 's|@pkgversion[@]|\$(pkgversion)|g' \
@@ -453,6 +455,7 @@ AC_CONFIG_FILES([Makefile
 		src/prg/tests/output-tests/test-06-02/Makefile
 		src/prg/tests/output-tests/test-06-04/Makefile
 		src/prg/tests/output-tests/test-06-08/Makefile
+		src/prg/tests/shellcheck/Makefile
 		src/prg/tests/trap-tests/test00/Makefile
 		src/prg/tests/version-tests/test00/Makefile
 		src/prg/run-tests/Makefile])
