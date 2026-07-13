@@ -32,7 +32,7 @@ fi
 
 shellcheck -ax "${targets[@]}"
 
-printf '%s\n' "${targets[@]}"
+printf '%s\n' "${targets[@]}" | sort
 
 echo "Files processed - ${#targets[@]}"
 
