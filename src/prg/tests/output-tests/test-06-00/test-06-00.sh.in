@@ -1,0 +1,85 @@
+#! @bashlocation@
+
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+. @bashlibloc@/mge-basic-lib.sh
+
+where=$(( mge_basic_lib_output_where_stderr \
+	| mge_basic_lib_output_where_log ))
+when=$mge_basic_lib_output_when_silent
+
+test_name_digits=$(printf "%02d-%02d" "$where" "$when")
+
+outputprefix="$(basename "$0")"
+
+check_journal()
+{
+	if command -v journalctl >/dev/null 2>&1; then
+		if journalctl -t "$outputprefix" --since "2 minutes ago" \
+			| grep -Fq "$unique_identifier"; then
+			return 0
+		fi
+	fi
+	return 1
+}
+
+check_syslog()
+{
+	# common syslog locations to try
+	for f in /var/log/syslog /var/log/messages /var/log/system.log; do
+		if [ -r "$f" ]; then
+			if grep -Fq "$unique_identifier" "$f"; then
+				return 0
+			fi
+		fi
+	done
+	return 1
+}
+
+for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
+	set +e
+
+	unique_identifier="logger-msg-$(date +%s)-$RANDOM"
+	msg="$unique_identifier: Test-$test_name_digits There should be no output"
+
+	mge_basic_lib_output "$msg" "$verbosity" "$where" "$when" \
+		1> test-"$test_name_digits"-stdout-result.txt \
+		2> test-"$test_name_digits"-stderr-result.txt
+
+	set -e
+
+	echo "$msg" > test-"$test_name_digits"-stderr-answer.txt
+
+	# allow logger/journal/syslog to flush
+	sleep 0.2
+
+	if _mge_basic_lib_is_bit_set "$when" "$verbosity"; then
+		cmp test-"$test_name_digits"-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
+		if check_journal; then
+			continue
+		fi
+
+		if check_syslog; then
+			continue
+		fi
+	else
+		cmp test-"$test_name_digits"-a-stdout-answer.txt \
+			test-"$test_name_digits"-stdout-result.txt
+		cmp test-"$test_name_digits"-a-stderr-answer.txt \
+			test-"$test_name_digits"-stderr-result.txt
+		if ! check_journal && ! check_syslog; then
+			continue
+		fi
+	fi
+
+	exit 1
+
+done
+
+cd -
+
