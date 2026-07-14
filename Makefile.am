@@ -114,6 +114,7 @@ SUBDIRS += src/prg/tests/output-tests/test-06-10
 SUBDIRS += src/prg/tests/output-tests/test-06-11
 SUBDIRS += src/prg/tests/output-tests/test-06-12
 SUBDIRS += src/prg/tests/output-tests/test-06-13
+SUBDIRS += src/prg/tests/output-tests/test-06-14
 SUBDIRS += src/prg/tests/shellcheck
 SUBDIRS += src/prg/tests/trap-tests/test00
 SUBDIRS += src/prg/tests/version-tests/test00
