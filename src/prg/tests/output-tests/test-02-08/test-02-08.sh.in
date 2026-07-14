@@ -6,16 +6,17 @@ cd "$(dirname "$0")"
 
 . @bashlibloc@/mge-basic-lib.sh
 
-where=$mge_basic_lib_output_where_stderr
-when=$mge_basic_lib_output_when_trace
+where=$mge_basic_lib_emit_msg_where_stderr
+when=$mge_basic_lib_emit_msg_when_trace
 
 test_name_digits=$(printf "%02d-%02d" "$where" "$when")
 
 for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
 	set +e
-	mge_basic_lib_output "Test-$test_name_digits Answer should be stderr only" \
-		"$verbosity" "$where" \
-		"$when" 1> test-"$test_name_digits"-stdout-result.txt \
+	mge_basic_lib_emit_msg \
+		"Test-$test_name_digits Answer should be stderr only" \
+		"$verbosity" "$where" "$when" \
+		1> test-"$test_name_digits"-stdout-result.txt \
 		2> test-"$test_name_digits"-stderr-result.txt
 
 	set -e

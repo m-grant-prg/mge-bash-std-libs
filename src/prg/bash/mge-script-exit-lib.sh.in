@@ -76,16 +76,16 @@ mge_script_exit_lib_exit()
 # Print out the script and package version strings to stdout
 # Scope:	API
 # Parameters:	None
-# Returns:	0 on success, exits, from mge_basic_lib_output(), on error
+# Returns:	0 on success, exits, from mge_basic_lib_emit_msg(), on error
 mge_script_exit_lib_emit_version()
 {
 	local msg
 
 	msg="mge script exit library script version is"
 	msg+=" $_mge_script_exit_lib_version"
-	mge_basic_lib_output "$msg"
+	mge_basic_lib_emit_msg "$msg"
 	msg="mge script exit library package version is"
 	msg+=" $_mge_script_exit_lib_packageversion"
-	mge_basic_lib_output "$msg"
+	mge_basic_lib_emit_msg "$msg"
 }
 

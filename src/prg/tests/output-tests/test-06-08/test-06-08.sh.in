@@ -6,9 +6,9 @@ cd "$(dirname "$0")"
 
 . @bashlibloc@/mge-basic-lib.sh
 
-where=$(( mge_basic_lib_output_where_stderr \
-	| mge_basic_lib_output_where_log ))
-when=$mge_basic_lib_output_when_trace
+where=$(( mge_basic_lib_emit_msg_where_stderr \
+	| mge_basic_lib_emit_msg_where_log ))
+when=$mge_basic_lib_emit_msg_when_trace
 
 test_name_digits=$(printf "%02d-%02d" "$where" "$when")
 
@@ -42,9 +42,10 @@ for ((verbosity = 0 ; verbosity <= 15 ; verbosity++)); do
 	set +e
 
 	unique_identifier="logger-msg-$(date +%s)-$RANDOM"
-	msg="$unique_identifier: Test-$test_name_digits Answer should be logger and stdout only"
+	msg="$unique_identifier: Test-$test_name_digits"
+	msg+=" Answer should be logger and stdout only"
 
-	mge_basic_lib_output "$msg" "$verbosity" "$where" "$when" \
+	mge_basic_lib_emit_msg "$msg" "$verbosity" "$where" "$when" \
 		1> test-"$test_name_digits"-stdout-result.txt \
 		2> test-"$test_name_digits"-stderr-result.txt
 
