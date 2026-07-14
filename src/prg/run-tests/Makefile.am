@@ -104,6 +104,7 @@ TESTS += ../tests/output-tests/test-06-07/test-06-07.sh
 TESTS += ../tests/output-tests/test-06-08/test-06-08.sh
 TESTS += ../tests/output-tests/test-06-09/test-06-09.sh
 TESTS += ../tests/output-tests/test-06-10/test-06-10.sh
+TESTS += ../tests/output-tests/test-06-11/test-06-11.sh
 TESTS += ../tests/shellcheck/run-shellcheck.sh
 TESTS += ../tests/trap-tests/test00/test00.sh
 TESTS += ../tests/version-tests/test00/test00.sh
