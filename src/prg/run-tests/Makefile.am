@@ -98,6 +98,7 @@ TESTS += ../tests/output-tests/test-06-01/test-06-01.sh
 TESTS += ../tests/output-tests/test-06-02/test-06-02.sh
 TESTS += ../tests/output-tests/test-06-03/test-06-03.sh
 TESTS += ../tests/output-tests/test-06-04/test-06-04.sh
+TESTS += ../tests/output-tests/test-06-05/test-06-05.sh
 TESTS += ../tests/output-tests/test-06-08/test-06-08.sh
 TESTS += ../tests/shellcheck/run-shellcheck.sh
 TESTS += ../tests/trap-tests/test00/test00.sh
