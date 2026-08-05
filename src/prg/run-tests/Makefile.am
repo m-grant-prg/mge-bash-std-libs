@@ -109,7 +109,8 @@ TESTS += ../tests/output-tests/test-06-12/test-06-12.sh
 TESTS += ../tests/output-tests/test-06-13/test-06-13.sh
 TESTS += ../tests/output-tests/test-06-14/test-06-14.sh
 TESTS += ../tests/output-tests/test-06-15/test-06-15.sh
-TESTS += ../tests/shellcheck/run-shellcheck.sh
+TESTS += ../tests/shellcheck/run-dot-sh-dot-in-pattern.sh
+TESTS += ../tests/shellcheck/shellcheck-inline-dot-sh.sh
 TESTS += ../tests/trap-tests/test00/test00.sh
 TESTS += ../tests/version-tests/test00/test00.sh
 
