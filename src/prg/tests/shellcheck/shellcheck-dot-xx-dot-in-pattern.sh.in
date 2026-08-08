@@ -1,4 +1,4 @@
-#! @bashlocation@
+#! @envlocation@ bash
 #########################################################################
 #									#
 #	script shellcheck-dot-xx-dot-in-pattern.sh is automatically	#

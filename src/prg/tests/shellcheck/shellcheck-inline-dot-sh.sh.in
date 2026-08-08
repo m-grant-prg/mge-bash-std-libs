@@ -1,4 +1,4 @@
-#! @bashlocation@
+#! @envlocation@ bash
 #########################################################################
 #									#
 #	script shellcheck-inline-dot-sh.sh is automatically generated,	#
